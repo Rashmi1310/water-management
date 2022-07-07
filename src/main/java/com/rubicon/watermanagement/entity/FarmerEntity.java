@@ -12,6 +12,11 @@ import javax.persistence.Table;
 @Table (name="farmer")
 public class FarmerEntity {
 	
+	@Override
+	public String toString() {
+		return "FarmerEntity [requestId=" + requestId + ", farmid=" + farmid + ", dateTime=" + dateTime + ", duration="
+				+ duration + ", status=" + status + "]";
+	}
 	@Column
 	@GeneratedValue
 	@Id

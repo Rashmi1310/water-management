@@ -1,5 +1,10 @@
 package com.rubicon.watermanagement.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,19 +46,49 @@ public class FarmerService {
 		return canceledOrderResponse;
 }
 	
-	public OrderResponse viewOrder(int farmid)
+	public List<OrderResponse> viewOrder(int farmid)
 	{
-		FarmerEntity fetchOrder=farmerRepo.findByFarmid(farmid).get();
-		OrderResponse viewOrderResponse=new OrderResponse();
-		viewOrderResponse.setDateTime(fetchOrder.getDateTime());
-		viewOrderResponse.setDuration(fetchOrder.getDuration());
-		viewOrderResponse.setFarmid(fetchOrder.getFarmid());
-		viewOrderResponse.setRequestId(fetchOrder.getRequestId());
-		viewOrderResponse.setStatus(fetchOrder.getStatus());
-		
-		return viewOrderResponse;
-   }
+		List<FarmerEntity> fetchOrder=farmerRepo.findByFarmid(farmid);
+		System.out.println(fetchOrder);
+		List<OrderResponse> listOrderResponse=new ArrayList<>();
+		 for (FarmerEntity listOrder:fetchOrder) 
+		    {
+			 OrderResponse orderResponse=new OrderResponse();
+			 orderResponse.setDateTime(listOrder.getDateTime());
+			 orderResponse.setDuration(listOrder.getDuration());
+			 orderResponse.setRequestId(listOrder.getRequestId());
+			 orderResponse.setStatus(listOrder.getStatus());
+			 orderResponse.setFarmid(listOrder.getFarmid());
+			 
+			 listOrderResponse.add(orderResponse);
+			}
+		 
+	return listOrderResponse;
+
+	}
 	
+	public OrderResponse updateOrder(OrderRequest orderRequest, Long requestId) {
+		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
+		System.out.println(fetchOrder);
+		fetchOrder.setDuration(orderRequest.getDuration());	
+		fetchOrder.setDateTime(orderRequest.getDateTime());
+		System.out.println(fetchOrder);
+		
+	
+				//save the entity
+			FarmerEntity saveUpdateEntity=farmerRepo.save(fetchOrder);
+				
+			OrderResponse updateOrderResponse=new OrderResponse();
+				//get the entity for response
+			updateOrderResponse.setDateTime(saveUpdateEntity.getDateTime());
+			updateOrderResponse.setDuration(saveUpdateEntity.getDuration());
+			updateOrderResponse.setFarmid(saveUpdateEntity.getFarmid());
+			updateOrderResponse.setRequestId(saveUpdateEntity.getRequestId());
+			updateOrderResponse.setStatus(saveUpdateEntity.getStatus());
+				
+				return updateOrderResponse;
+		
+	}
 	public OrderResponse createOrder(OrderRequest orderRequest) {
 		
 		//set arguments in entity from DTO
