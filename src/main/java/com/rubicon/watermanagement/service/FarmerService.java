@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.rubicon.watermanagement.dto.OrderRequest;
 import com.rubicon.watermanagement.dto.OrderResponse;
@@ -18,7 +19,8 @@ public class FarmerService {
 	@Autowired
 	private FarmerRepository farmerRepo;
 	
-	public OrderResponse findById(Long requestId) {
+	public OrderResponse findById(Long requestId) 
+	{
 		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
 		
 		OrderResponse orderResponse=new OrderResponse();
@@ -30,10 +32,10 @@ public class FarmerService {
 		return orderResponse;			
 	}
 	
-	public OrderResponse cancelRequest(Long requestId) {
+	public OrderResponse cancelRequest(Long requestId) 
+	{
 		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
 		fetchOrder.setStatus("Canceled");
-		
 		FarmerEntity cancelFarmerRequest=farmerRepo.save(fetchOrder);
 		
 		OrderResponse canceledOrderResponse=new OrderResponse();
@@ -44,7 +46,7 @@ public class FarmerService {
 		canceledOrderResponse.setStatus(cancelFarmerRequest.getStatus());
 			
 		return canceledOrderResponse;
-}
+    }
 	
 	public List<OrderResponse> viewOrder(int farmid)
 	{
@@ -67,7 +69,9 @@ public class FarmerService {
 
 	}
 	
-	public OrderResponse updateOrder(OrderRequest orderRequest, Long requestId) {
+	
+	public OrderResponse updateOrder(OrderRequest orderRequest, Long requestId) 
+	{
 		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
 		System.out.println(fetchOrder);
 		fetchOrder.setDuration(orderRequest.getDuration());	
@@ -89,7 +93,9 @@ public class FarmerService {
 				return updateOrderResponse;
 		
 	}
-	public OrderResponse createOrder(OrderRequest orderRequest) {
+	
+	public OrderResponse createOrder(OrderRequest orderRequest) 
+	{
 		
 		//set arguments in entity from DTO
 		FarmerEntity farmerEntity=new FarmerEntity();
@@ -113,6 +119,26 @@ public class FarmerService {
 		
 	}
 	
+	public void requestDelete(Long requestId)
+	{
+       FarmerEntity	findOrder=farmerRepo.findById(requestId).get();
+       System.out.println(findOrder);
+//   FarmerEntity fetchFarmerEntity=new FarmerEntity();
+//   fetchFarmerEntity.setDateTime(findOrder.getDateTime());
+//   fetchFarmerEntity.setDuration(findOrder.getDuration());
+//   fetchFarmerEntity.setRequestId(findOrder.getRequestId());
+//   fetchFarmerEntity.setFarmid(findOrder.getFarmid());
+//   fetchFarmerEntity.setStatus(findOrder.getStatus());
+       farmerRepo.deleteById(requestId);
+   
+    }
 	
+	public void orderDelete(int farmid) 
+	{
+		List<FarmerEntity> findDeleteOrder=farmerRepo.findByFarmid(farmid);
+		System.out.println(findDeleteOrder);
+		
+		farmerRepo.deleteAll(findDeleteOrder);
+	}
 
 }
