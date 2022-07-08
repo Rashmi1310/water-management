@@ -140,5 +140,43 @@ public class FarmerService {
 		
 		farmerRepo.deleteAll(findDeleteOrder);
 	}
+	
+	public List<OrderResponse> multipleRequest(List<OrderRequest> orderRequest)
+	{
+		//System.out.println(orderRequest);
+		
+		List<FarmerEntity> listFarmerEntity=new ArrayList<>();
+		
+	      //System.out.println(listFarmerEntity);
+		for(OrderRequest orderRequestList:orderRequest) 
+		{
+			FarmerEntity farmerEntity=new FarmerEntity();
+			farmerEntity.setDateTime(orderRequestList.getDateTime());
+			farmerEntity.setDuration(orderRequestList.getDuration());
+			farmerEntity.setFarmid(orderRequestList.getFarmid());
+			farmerEntity.setStatus("In Progress");
+			
+			listFarmerEntity.add(farmerEntity);
+			
+		}
+		
+		List<FarmerEntity> saveFarmerEntity=farmerRepo.saveAll(listFarmerEntity);
+		List<OrderResponse> listOrderResponse=new ArrayList<OrderResponse>();
+
+		for(FarmerEntity listEntity:saveFarmerEntity)
+		{
+			OrderResponse orderResponse=new OrderResponse();
+			orderResponse.setDateTime(listEntity.getDateTime());
+			orderResponse.setDuration(listEntity.getDuration());
+			orderResponse.setFarmid(listEntity.getFarmid());
+			orderResponse.setRequestId(listEntity.getRequestId());
+			orderResponse.setStatus(listEntity.getStatus());
+			
+			listOrderResponse.add(orderResponse);
+			
+		}
+		
+		return listOrderResponse;
+	}
 
 }

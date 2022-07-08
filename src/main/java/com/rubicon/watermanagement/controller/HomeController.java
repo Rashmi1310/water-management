@@ -59,5 +59,10 @@ public class HomeController {
 		farmerService.orderDelete(farmid);
 	}
 	
+	@PostMapping("/create/multiple/request")
+	public List<OrderResponse> multipleRequest(@RequestBody List<OrderRequest> orderRequest)
+	{
+		 return farmerService.multipleRequest(orderRequest);
+	}
 	}
 	

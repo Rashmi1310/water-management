@@ -6,6 +6,11 @@ public class OrderResponse {
 
 	    Long requestId;
 		int farmid;
+		@Override
+		public String toString() {
+			return "OrderResponse [requestId=" + requestId + ", farmid=" + farmid + ", dateTime=" + dateTime
+					+ ", duration=" + duration + ", status=" + status + "]";
+		}
 		LocalDateTime dateTime;
 		int duration;
 		String status;
