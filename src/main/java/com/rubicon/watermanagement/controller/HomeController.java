@@ -25,7 +25,7 @@ public class HomeController {
 	private FarmerService farmerService;
 	
 	@GetMapping("/find/request/{requestId}")
-	public OrderResponse fetchOrder(@PathVariable Long requestId ) {
+	public OrderResponse findById(@PathVariable Long requestId ) {
 		return farmerService.findById(requestId);
 	}
 	
