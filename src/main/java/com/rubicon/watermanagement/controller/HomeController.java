@@ -31,7 +31,7 @@ public class HomeController {
 	
 	@GetMapping("/cancel/request/{requestId}")
 	public OrderResponse cancelRequest(@PathVariable Long requestId) {
-	return 	farmerService.cancelRequest(requestId);
+	   return farmerService.cancelRequest(requestId);
 	}
 	
 	@GetMapping("/view/request/{farmid}")
@@ -41,7 +41,7 @@ public class HomeController {
 	
 	@PostMapping("/create/request")
 	public OrderResponse createOrder(@RequestBody OrderRequest orderRequest){
-		return farmerService.createOrder(orderRequest);
+	return farmerService.createOrder(orderRequest);
 	}
 
 	@PutMapping("/update/request/{requestId}")

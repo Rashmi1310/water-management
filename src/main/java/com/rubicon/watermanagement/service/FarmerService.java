@@ -13,7 +13,7 @@ import com.rubicon.watermanagement.dto.OrderRequest;
 import com.rubicon.watermanagement.dto.OrderResponse;
 import com.rubicon.watermanagement.entity.FarmerEntity;
 import com.rubicon.watermanagement.repository.FarmerRepository;
-
+import java.time.LocalDateTime;
 @Service
 public class FarmerService {
 	@Autowired
@@ -28,10 +28,13 @@ public class FarmerService {
 	public OrderResponse cancelRequest(Long requestId) 
 	{
 		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
-		fetchOrder.setStatus("Cancelled");
-		FarmerEntity farmerRequest=farmerRepo.save(fetchOrder);
-		OrderResponse cancelOrderResponse=prepareResponse(farmerRequest);
-		return cancelOrderResponse;
+	    String status = fetchOrder.getStatus();
+	    if(status.equals("Requested"))
+	    {
+	         fetchOrder.setStatus("Cancelled");
+	         fetchOrder=farmerRepo.save(fetchOrder);
+	    }
+		return prepareResponse(fetchOrder);		
     }
 	
 	public List<OrderResponse> viewOrder(int farmid)
@@ -39,38 +42,26 @@ public class FarmerService {
 		List<FarmerEntity> fetchOrder=farmerRepo.findByFarmid(farmid);
 		return prepareResponse(fetchOrder);
 	}
-	public OrderResponse updateOrder(OrderRequest orderRequest, Long requestId) 
-	{
-		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
-		fetchOrder.setDuration(orderRequest.getDuration());	
-		fetchOrder.setDateTime(orderRequest.getDateTime());
-		FarmerEntity saveUpdateEntity=farmerRepo.save(fetchOrder);
-		return prepareResponse(saveUpdateEntity);
-	}
-	
-	public OrderResponse createOrder(OrderRequest orderRequest) 
-	{
-		FarmerEntity farmerEntity=new FarmerEntity();
-		farmerEntity.setDateTime(orderRequest.getDateTime());
-		farmerEntity.setDuration(orderRequest.getDuration());
-		farmerEntity.setFarmid(orderRequest.getFarmid());
-		farmerEntity.setStatus("Requested");
-		FarmerEntity saveFarmerEntity=farmerRepo.save(farmerEntity);
-		return prepareResponse(saveFarmerEntity);
-	}
 	
 	public void requestDelete(Long requestId)
 	{
-       FarmerEntity	findOrder=farmerRepo.findById(requestId).get();
-       System.out.println(findOrder);
        farmerRepo.deleteById(requestId);
     }
 	
 	public void orderDelete(int farmid) 
 	{
 		List<FarmerEntity> findDeleteOrder=farmerRepo.findByFarmid(farmid);
-		System.out.println(findDeleteOrder);
 		farmerRepo.deleteAll(findDeleteOrder);
+	}
+	
+	public OrderResponse updateOrder(OrderRequest orderRequest, Long requestId) 
+	{
+		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
+		fetchOrder.setDuration(orderRequest.getDuration());	
+		fetchOrder.setDateTime(orderRequest.getDateTime());
+		FarmerEntity saveUpdateEntity=farmerRepo.save(fetchOrder);
+		
+		return prepareResponse(saveUpdateEntity);
 	}
 	
 	public List<OrderResponse> multipleRequest(List<OrderRequest> orderRequest)
@@ -88,6 +79,29 @@ public class FarmerService {
 		}
 		List<FarmerEntity> multipleFarmerEntity=farmerRepo.saveAll(listFarmerEntity);
 		return prepareResponse(multipleFarmerEntity);
+	}
+	
+	public OrderResponse createOrder(OrderRequest orderRequest) 
+	{
+		Boolean isConflict =checkOrderDateTimeConflict(orderRequest);
+		FarmerEntity saveFarmerEntity=new FarmerEntity();
+		if(!isConflict) 
+		{
+			saveFarmerEntity.setDateTime(orderRequest.getDateTime());
+			saveFarmerEntity.setDuration(orderRequest.getDuration());
+			saveFarmerEntity.setFarmid(orderRequest.getFarmid());
+			saveFarmerEntity.setStatus("Requested");
+		    saveFarmerEntity=farmerRepo.save(saveFarmerEntity);
+		}
+		else 
+		{
+			saveFarmerEntity.setDateTime(orderRequest.getDateTime());
+			saveFarmerEntity.setDuration(orderRequest.getDuration());
+			saveFarmerEntity.setFarmid(orderRequest.getFarmid());
+			saveFarmerEntity.setStatus("Can Not create order");
+		}	
+		
+		return prepareResponse(saveFarmerEntity);		
 	}
 	
 	public OrderResponse prepareResponse(FarmerEntity farmerEntity) 
@@ -116,6 +130,34 @@ public class FarmerService {
 		listOrderResponse.add(orderResponse);
 	   }
 		return listOrderResponse;
+	}
+	
+	public Boolean checkOrderDateTimeConflict(OrderRequest orderRequest)
+	{
+		List<FarmerEntity> fecthAllOrder=farmerRepo.findByFarmid(orderRequest.getFarmid());
+		LocalDateTime startDateTime = null;
+		LocalDateTime endDateTime = null;
+		Boolean isConflict = false;
+		LocalDateTime reqStartDateTime=orderRequest.getDateTime();
+		LocalDateTime reqEndDateTime=orderRequest.getDateTime().plusHours(orderRequest.getDuration());
+		for(FarmerEntity farmerEntity:fecthAllOrder)
+		{
+			startDateTime=farmerEntity.getDateTime();
+			endDateTime=farmerEntity.getDateTime().plusHours(farmerEntity.getDuration());
+			if(startDateTime.isEqual(reqStartDateTime)
+					|| endDateTime.isEqual(reqStartDateTime)
+					|| (startDateTime.isBefore(reqStartDateTime)&&endDateTime.isAfter(reqStartDateTime))
+					||reqEndDateTime.isEqual(startDateTime)
+					||reqEndDateTime.isEqual(endDateTime)
+					||(startDateTime.isBefore(reqEndDateTime)&&endDateTime.isAfter(reqEndDateTime)))
+					 
+			{
+				isConflict=true;
+			}
+			
+		}
+		return isConflict;
+	
 	}
 
 }
