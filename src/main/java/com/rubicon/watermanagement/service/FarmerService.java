@@ -1,11 +1,15 @@
 package com.rubicon.watermanagement.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Optional;
+import java.util.*;
 
+import com.rubicon.watermanagement.common.Constants;
+import com.rubicon.watermanagement.exception.ErrorDetails;
+import com.rubicon.watermanagement.exception.FutureDateTimeException;
+import com.rubicon.watermanagement.exception.OrderConflicttException;
+import com.rubicon.watermanagement.exception.ResourceNotFoundException;
+import org.hibernate.criterion.Order;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -19,25 +23,38 @@ public class FarmerService {
 	@Autowired
 	private FarmerRepository farmerRepo;
 	
-	public OrderResponse findById(Long requestId) 
+	//public OrderResponse findById(Long requestId)
+	public ResponseEntity<?> findById(Long requestId)
 	{
-		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
-		return prepareResponse(fetchOrder);
+		Optional<FarmerEntity> farmerEntity=farmerRepo.findById(requestId);
+		if(!farmerEntity.isPresent())
+		{
+			throw new ResourceNotFoundException("Request-id not found.");
+		}
+		 OrderResponse orderResponse=prepareResponse(farmerEntity.get());
+		return ResponseEntity.ok(orderResponse);
+
 	}
 	
-	public OrderResponse cancelRequest(Long requestId) 
+	public ResponseEntity<?> cancelRequest(Long requestId)
 	{
-		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
-	    String status = fetchOrder.getStatus();
-	    if(status.equals("Requested"))
+		Optional<FarmerEntity> farmerEntity=farmerRepo.findById(requestId);
+		if(!farmerEntity.isPresent())
+		{
+		  throw new ResourceNotFoundException("Request-id is not found.");
+		}
+		FarmerEntity fetchEntity=farmerEntity.get();
+	    String status = fetchEntity.getStatus();
+	    if(status.equals(Constants.REQUESTED_STATUS))
 	    {
-	         fetchOrder.setStatus("Cancelled");
-	         fetchOrder=farmerRepo.save(fetchOrder);
+			fetchEntity.setStatus(Constants.CANCELED_STATUS);
+			fetchEntity=farmerRepo.save(fetchEntity);
 	    }
-		return prepareResponse(fetchOrder);		
+		OrderResponse orderResponse = prepareResponse(fetchEntity);
+		return ResponseEntity.ok(fetchEntity);
     }
 	
-	public List<OrderResponse> viewOrder(int farmid)
+	public List<OrderResponse> viewOrder(String farmid)
 	{
 		List<FarmerEntity> fetchOrder=farmerRepo.findByFarmid(farmid);
 		return prepareResponse(fetchOrder);
@@ -45,23 +62,34 @@ public class FarmerService {
 	
 	public void requestDelete(Long requestId)
 	{
-       farmerRepo.deleteById(requestId);
+       Optional<FarmerEntity> farmerEntity=farmerRepo.findById(requestId);
+	   if(!farmerEntity.isPresent())
+	   {
+		   throw new ResourceNotFoundException("Request-id not found");
+	   }
+		farmerRepo.deleteById(requestId);
     }
 	
-	public void orderDelete(int farmid) 
+	public void orderDelete(String farmid)
 	{
 		List<FarmerEntity> findDeleteOrder=farmerRepo.findByFarmid(farmid);
 		farmerRepo.deleteAll(findDeleteOrder);
 	}
 	
-	public OrderResponse updateOrder(OrderRequest orderRequest, Long requestId) 
+	public ResponseEntity<?> updateOrder(OrderRequest orderRequest, Long requestId)
 	{
-		FarmerEntity fetchOrder=farmerRepo.findById(requestId).get();
+		Optional<FarmerEntity> farmerEntity=farmerRepo.findById(requestId);
+		if(!farmerEntity.isPresent())
+		{
+			throw new ResourceNotFoundException("Request-id not found.");
+		}
+		FarmerEntity fetchOrder=farmerEntity.get();
 		fetchOrder.setDuration(orderRequest.getDuration());	
 		fetchOrder.setDateTime(orderRequest.getDateTime());
 		FarmerEntity saveUpdateEntity=farmerRepo.save(fetchOrder);
 		
-		return prepareResponse(saveUpdateEntity);
+		OrderResponse orderResponse=prepareResponse(saveUpdateEntity);
+		return ResponseEntity.ok(orderResponse);
 	}
 	
 	public List<OrderResponse> multipleRequest(List<OrderRequest> orderRequest)
@@ -73,7 +101,7 @@ public class FarmerService {
 			farmerEntity.setDateTime(orderRequestList.getDateTime());
 			farmerEntity.setDuration(orderRequestList.getDuration());
 			farmerEntity.setFarmid(orderRequestList.getFarmid());
-			farmerEntity.setStatus("InProgress");
+			farmerEntity.setStatus(Constants.INPROGRESS_STATUS);
 			
 			listFarmerEntity.add(farmerEntity);	
 		}
@@ -81,26 +109,26 @@ public class FarmerService {
 		return prepareResponse(multipleFarmerEntity);
 	}
 	
-	public OrderResponse createOrder(OrderRequest orderRequest) 
+	public OrderResponse createOrder(OrderRequest orderRequest)
 	{
+		LocalDateTime currentDateTime=LocalDateTime.now();
+		LocalDateTime futureDateTime=orderRequest.getDateTime();
+		if(!futureDateTime.isAfter(currentDateTime))
+		{
+           throw new FutureDateTimeException("please enter future dateTime");
+		}
 		Boolean isConflict =checkOrderDateTimeConflict(orderRequest);
 		FarmerEntity saveFarmerEntity=new FarmerEntity();
-		if(!isConflict) 
+		if(isConflict)
 		{
-			saveFarmerEntity.setDateTime(orderRequest.getDateTime());
-			saveFarmerEntity.setDuration(orderRequest.getDuration());
-			saveFarmerEntity.setFarmid(orderRequest.getFarmid());
-			saveFarmerEntity.setStatus("Requested");
-		    saveFarmerEntity=farmerRepo.save(saveFarmerEntity);
+		 throw new OrderConflicttException("Can't create order, dateTime conflict occurrred");
 		}
-		else 
-		{
 			saveFarmerEntity.setDateTime(orderRequest.getDateTime());
 			saveFarmerEntity.setDuration(orderRequest.getDuration());
 			saveFarmerEntity.setFarmid(orderRequest.getFarmid());
-			saveFarmerEntity.setStatus("Can Not create order");
-		}	
-		
+			saveFarmerEntity.setStatus(Constants.REQUESTED_STATUS);
+			saveFarmerEntity=farmerRepo.save(saveFarmerEntity);
+
 		return prepareResponse(saveFarmerEntity);		
 	}
 	
@@ -139,11 +167,11 @@ public class FarmerService {
 		LocalDateTime endDateTime = null;
 		Boolean isConflict = false;
 		LocalDateTime reqStartDateTime=orderRequest.getDateTime();
-		LocalDateTime reqEndDateTime=orderRequest.getDateTime().plusHours(orderRequest.getDuration());
+		LocalDateTime reqEndDateTime=orderRequest.getDateTime().plusHours(Long.parseLong(orderRequest.getDuration()));
 		for(FarmerEntity farmerEntity:fecthAllOrder)
 		{
 			startDateTime=farmerEntity.getDateTime();
-			endDateTime=farmerEntity.getDateTime().plusHours(farmerEntity.getDuration());
+			endDateTime=farmerEntity.getDateTime().plusHours(Long.parseLong(farmerEntity.getDuration()));
 			if(startDateTime.isEqual(reqStartDateTime)
 					|| endDateTime.isEqual(reqStartDateTime)
 					|| (startDateTime.isBefore(reqStartDateTime)&&endDateTime.isAfter(reqStartDateTime))

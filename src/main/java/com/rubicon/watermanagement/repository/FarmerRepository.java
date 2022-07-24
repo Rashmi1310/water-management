@@ -12,6 +12,6 @@ import java.util.List;
 	
 public interface FarmerRepository extends JpaRepository<FarmerEntity, Long>
 {
-	 public List<FarmerEntity> findByFarmid(int  farmid);
+	 public List<FarmerEntity> findByFarmid(String  farmid);
 }
 

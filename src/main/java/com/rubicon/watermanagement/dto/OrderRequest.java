@@ -1,15 +1,22 @@
 package com.rubicon.watermanagement.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import javax.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 
 public class OrderRequest {
-	int farmid;
+	@Pattern(regexp = "^(?!00000000)[0-9]{8}$", message = "Please enter valid 8 digit numeric farm-id.")
+	String farmid;
+	//@Pattern(regexp = "^\\d\\d\\d\\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]) (00|[0-9]|1[0-9]|2[0-3]):([0-9]|[0-5][0-9]):([0-9]|[0-5][0-9])$")
+	//@JsonFormat(shape= JsonFormat.Shape.STRING, pattern="yyyy/MM/dd hh:mm:ss")
 	LocalDateTime dateTime;
-	int duration;
-	public int getFarmid() {
+	@Pattern(regexp = "^(?!00)[0-9]{2}$", message = "Enter hours as 2 digit numeric, max allowed hours is 99.")
+	String duration;
+	public  String getFarmid() {
 		return farmid;
 	}
-	public void setFarmid(int farmid) {
+	public void setFarmid(String farmid) {
 		this.farmid = farmid;
 	}
 	public LocalDateTime getDateTime() {
@@ -18,10 +25,10 @@ public class OrderRequest {
 	public void setDateTime(LocalDateTime dateTime) {
 		this.dateTime = dateTime;
 	}
-	public int getDuration() {
+	public String getDuration() {
 		return duration;
 	}
-	public void setDuration(int duration) {
+	public void setDuration(String duration) {
 		this.duration = duration;
 	}
 	

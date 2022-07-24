@@ -22,11 +22,11 @@ public class FarmerEntity {
 	@Id
 	private Long requestId;
 	@Column
-	private int farmid;
+	private String farmid;
 	@Column
 	private LocalDateTime dateTime;
 	@Column
-	private int duration;
+	private String duration;
 	@Column
 	private String status;
 	public Long getRequestId() {
@@ -35,10 +35,10 @@ public class FarmerEntity {
 	public void setRequestId(Long requestId) {
 		this.requestId = requestId;
 	}
-	public int getFarmid() {
+	public String getFarmid() {
 		return farmid;
 	}
-	public void setFarmid(int farmid) {
+	public void setFarmid(String farmid) {
 		this.farmid = farmid;
 	}
 	public LocalDateTime getDateTime() {
@@ -47,10 +47,10 @@ public class FarmerEntity {
 	public void setDateTime(LocalDateTime dateTime) {
 		this.dateTime = dateTime;
 	}
-	public int getDuration() {
+	public String getDuration() {
 		return duration;
 	}
-	public void setDuration(int duration) {
+	public void setDuration(String duration) {
 		this.duration = duration;
 	}
 	public String getStatus() {
