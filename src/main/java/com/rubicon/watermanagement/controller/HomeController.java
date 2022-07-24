@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.rubicon.watermanagement.exception.OrderConflicttException;
 import com.rubicon.watermanagement.validators.ValidFarmId;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,12 +30,14 @@ import javax.validation.constraints.Pattern;
 
 @RestController
 @Validated
+@Api(value = "HomeController")
 public class HomeController {
 	
 	@Autowired
 	private FarmerService farmerService;
 	
 	@GetMapping("/find/request/{requestId}")
+	@ApiOperation(value = "Create request for getting water")
 	public ResponseEntity<?> findById(@PathVariable Long requestId ) {
 		return farmerService.findById(requestId);
 
