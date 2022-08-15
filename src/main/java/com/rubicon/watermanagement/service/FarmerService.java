@@ -33,7 +33,6 @@ public class FarmerService {
 		}
 		 OrderResponse orderResponse=prepareResponse(farmerEntity.get());
 		return ResponseEntity.ok(orderResponse);
-
 	}
 	
 	public ResponseEntity<?> cancelRequest(Long requestId)
@@ -51,7 +50,7 @@ public class FarmerService {
 			fetchEntity=farmerRepo.save(fetchEntity);
 	    }
 		OrderResponse orderResponse = prepareResponse(fetchEntity);
-		return ResponseEntity.ok(fetchEntity);
+		return ResponseEntity.ok(orderResponse);
     }
 	
 	public List<OrderResponse> viewOrder(String farmid)
