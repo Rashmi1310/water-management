@@ -9,9 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class OrderResponse {
-        
-	    Long requestId;
-
+	Long requestId;
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
